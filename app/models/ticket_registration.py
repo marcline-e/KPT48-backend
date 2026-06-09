@@ -18,3 +18,4 @@ class TicketRegistration(Base):
     # UNTUK RELATIONSHIP: Gunakan string "NamaClass"
     user = relationship("User", back_populates="tickets")
     event = relationship("Event", back_populates="tickets")
+    point_transaction = relationship("Point_Transaction", back_populates="tickets", uselist=False)
