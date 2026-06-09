@@ -3,6 +3,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.routes.auth_routes import router as auth_router
 from app.routes.event_routes import router as event_router
 from app.core.exception_handler import register_exception_handlers
+from app.database.mysql import engine, Base
+import app.models
+
+# Ini bakal otomatis bikin tabel di kpt48_ticketing kalau tabelnya belum ada
+Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="KPT48 Theater Ticketing API",
