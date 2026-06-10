@@ -5,7 +5,7 @@ from app.database.mysql import Base
 class TicketRegistration(Base):
     __tablename__ = "ticket_registrations"
 
-    id_ticket_registration = Column(Integer, primary_key=True, index=True)
+    id_ticket_registration = Column(Integer, primary_key=True, autoincrement=True, index=True)
     
     # UNTUK FOREIGN KEY: Gunakan string "nama_tabel.nama_kolom"
     id_user = Column(Integer, ForeignKey("users.id_user"), nullable=False)

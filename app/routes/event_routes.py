@@ -46,6 +46,7 @@ def create_event(
         set_list=event.set_list,
         event_date=event.event_date,
         total_quota=event.total_quota,
+        ticket_price=event.ticket_price,
         official_open_at=event.official_open_at,
         official_close_at=event.official_close_at,
         general_open_at=event.general_open_at,

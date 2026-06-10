@@ -6,6 +6,7 @@ class EventCreate(BaseModel):
     event_date: datetime
 
     total_quota: int
+    ticket_price: int
 
     official_open_at: datetime
     official_close_at: datetime
