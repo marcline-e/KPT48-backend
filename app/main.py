@@ -34,15 +34,3 @@ register_exception_handlers(app)
 @app.get("/")
 async def root():
     return {"message": "Welcome to KPT48 Ticketing System! Ready for the war."}
-
-    from fastapi import FastAPI
-from app.routers import auth # Import router baru
-
-app = FastAPI()
-
-# Daftarkan router
-app.include_router(auth.router)
-
-@app.get("/")
-def read_root():
-    return {"message": "Server KPT48 Ticketing Berjalan!"}
