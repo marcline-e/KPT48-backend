@@ -4,7 +4,6 @@ from sqlalchemy.orm import Session
 from app.database.mysql import get_db
 from app.models.event import Event
 from app.schemas.event_schema import EventCreate
-from fastapi import APIRouter
 
 router = APIRouter(
     prefix="/event",
