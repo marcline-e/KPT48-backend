@@ -1,4 +1,4 @@
-from fastapi import Request
+from fastapi import Request, HTTPException
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import SQLAlchemyError
 from pymongo.errors import PyMongoError
@@ -62,5 +62,20 @@ def register_exception_handlers(app):
                 "success": False,
                 "error": "Internal Server Error",
                 "detail": str(exc)
+            }
+        )
+    
+    # HTTP Exception
+    @app.exception_handler(HTTPException)
+    async def http_exception_handler(
+        request: Request,
+        exc: HTTPException
+    ):
+        return JSONResponse(
+            status_code=exc.status_code,
+            content={
+                "success": False,
+                "error": "HTTP Exception",
+                "detail": exc.detail
             }
         )
