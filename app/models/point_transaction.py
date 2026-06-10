@@ -5,7 +5,7 @@ from app.database.mysql import Base
 class Point_Transaction(Base):
     __tablename__ = "point_transactions"
 
-    id_point_transaction = Column(Integer, primary_key=True, index=True)
+    id_point_transaction = Column(Integer, primary_key=True, autoincrement=True, index=True)
     id_user = Column(Integer, ForeignKey("users.id_user"), nullable=False)
     amount = Column(Integer, nullable=False) # Jumlah point yang ditransaksikan (positif untuk penambahan, negatif untuk pengurangan)
     type = Column(String(20), nullable=False) # topup, deduct, refund, membership

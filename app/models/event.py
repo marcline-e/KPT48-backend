@@ -6,7 +6,7 @@ class Event(Base):
     __tablename__ = "events" # Nama tabel di database nanti
 
     # Mendefinisikan kolom-kolom (Atribut)
-    id_event = Column(Integer, primary_key=True, index=True)
+    id_event = Column(Integer, primary_key=True, autoincrement=True, index=True)
     set_list = Column(String(100), nullable=False)
     event_date = Column(DateTime, nullable=False)
     total_quota = Column(Integer, nullable=False)
