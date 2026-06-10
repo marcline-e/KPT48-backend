@@ -22,3 +22,11 @@ SessionLocal = sessionmaker(
 
 # Base class ORM
 Base = declarative_base()
+
+# Dependency database session 
+def get_db():
+    db = SessionLocal() 
+    try: 
+        yield db 
+    finally: 
+        db.close()
