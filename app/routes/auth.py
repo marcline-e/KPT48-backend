@@ -1,8 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from app.database.mysql import get_db # Pastikan fungsi get_db ada di file ini
+# Ganti import-nya dari file mysql.py ke sql_engine.py
+from app.database.sql_engine import get_db 
 from app.schemas.user import UserCreate, UserResponse
 from app.models.user import User
+
+# ... (lanjutkan kode fungsi register-mu di bawah)
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -13,13 +16,13 @@ def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
     if db_user:
         raise HTTPException(status_code=400, detail="Email sudah terdaftar!")
 
-    # 2. Buat user baru (Password dalam bentuk plain text - nanti kita enkripsi ya!)
+    # 2. Buat user baru
     new_user = User(
         email=user_data.email,
         username=user_data.username,
         full_name=user_data.full_name,
         nik=user_data.nik,
-        password_hash=user_data.password # *Catatan: Untuk demo nanti, kita enkripsi!
+        password_hash=user_data.password # Nanti kita enkripsi ya!
     )
     
     # 3. Simpan ke database
