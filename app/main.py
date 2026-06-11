@@ -5,18 +5,15 @@ from app.routes.event_routes import router as event_router
 from app.routes.ticket_routes import router as ticket_routes
 from app.core.exception_handler import register_exception_handlers
 from app.database.mysql import engine, Base
-import app.models
 
-# Ini bakal otomatis bikin tabel di kpt48_ticketing kalau tabelnya belum ada
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="KPT48 Theater Ticketing API",
-    description="Backend service for FP SBD 2026",
     version="1.0.0"
 )
 
-# 1. Konfigurasi CORS (Agar tidak error "Failed to fetch" di Swagger)
+# --- Middleware & Router ---
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -33,6 +30,9 @@ app.include_router(ticket_routes)
 # 3. Registrasi Global Exception Handler
 register_exception_handlers(app)
 
+app.include_router(auth_router, prefix="/auth", tags=["Authentication"])
+app.include_router(event_router, prefix="/event", tags=["Event"])
+
 @app.get("/")
 async def root():
-    return {"message": "Welcome to KPT48 Ticketing System! Ready for the war."}
+    return {"message": "Welcome to KPT48 Ticketing System!"}
