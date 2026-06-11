@@ -2,7 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database.sql_engine import get_db
 from app.models.user import User
-from app.models.transaction import PointBalance, PointTransaction
+from app.models.point_balance import Point_Balance
+from app.models.point_transaction import Point_Transaction
 from app.schemas.transaction_schema import TopUpRequest
 
 # PENTING: Import satpam kita dari auth_routes!
@@ -16,22 +17,22 @@ def topup_points(
     db: Session = Depends(get_db), 
     current_user: User = Depends(get_current_user) # Gembok terpasang di sini!
 ):
-    # 1. Cek apakah user sudah punya dompet (PointBalance) di database
-    wallet = db.query(PointBalance).filter(PointBalance.user_id == current_user.id).first()
+    # 1. Gunakan id_user sesuai dengan model Point_Balance
+    wallet = db.query(Point_Balance).filter(Point_Balance.id_user == current_user.id_user).first()
     
     # Kalau belum punya, kita buatkan dompet baru dengan saldo awal 0
     if not wallet:
-        wallet = PointBalance(user_id=current_user.id, balance=0)
+        wallet = Point_Balance(id_user=current_user.id_user, balance=0)
         db.add(wallet)
     
     # 2. Tambahkan saldo sesuai request
     wallet.balance += request.amount
     
-    # 3. Catat riwayat transaksi di PointTransaction
-    transaction_log = PointTransaction(
-        user_id=current_user.id,
+    # 3. Catat riwayat transaksi (Gunakan id_user dan type sesuai model Point_Transaction)
+    transaction_log = Point_Transaction(
+        id_user=current_user.id_user,
         amount=request.amount,
-        transaction_type="TOPUP"
+        type="topup"  # Mengikuti standar penamaan temanmu di komentar file model
     )
     db.add(transaction_log)
     

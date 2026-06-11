@@ -35,7 +35,7 @@ app.include_router(auth_router, prefix="/auth", tags=["Authentication"])
 app.include_router(event_router, prefix="/event", tags=["Event"])
 app.include_router(auth_router, prefix="/auth", tags=["Authentication"])
 app.include_router(event_router, prefix="/event", tags=["Event"])
-app.include_router(transaction_router, prefix="/transaction", tags=["Transaction"]) # <--- TAMBAHKAN INI
+app.include_router(transaction_router, prefix="/transaction", tags=["Transaction"])
 
 @app.get("/")
 async def root():
