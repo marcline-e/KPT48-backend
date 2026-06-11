@@ -1,8 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from models import Event, PointBalance, PointTransaction, TicketRegistration, User
-from schemas import TicketRegisterSchema
-from database import get_db
+from app.models.event import Event
+from app.models.point_balance import Point_Balance
+from app.models.point_transaction import Point_Transaction
+from app.models.ticket_registration import TicketRegistration
+from app.models.user import User  # Asumsi entitas User ada di app/models/user.py
+from app.schemas.ticket_schema import TicketRegisterSchema # Sesuaikan dengan nama file schemamu
+from app.database.mysql import get_db
 from datetime import datetime
 
 router = APIRouter()

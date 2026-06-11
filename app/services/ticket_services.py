@@ -6,10 +6,6 @@ from app.models.point_transaction import PointTransaction
 from app.models.ticket_registration import TicketRegistration
 from app.models.event import Event
 
-
-TICKET_PRICE = 100
-
-
 def register_ticket_service(
     db: Session,
     user_id: int,
@@ -17,9 +13,7 @@ def register_ticket_service(
 ):
 
     try:
-
         # CEK EVENT
-        
         event = db.query(Event).filter(
             Event.id == event_id
         ).first()
@@ -46,7 +40,7 @@ def register_ticket_service(
         
         # CEK SALDO
         
-        if balance.balance < TICKET_PRICE:
+        if balance.balance < event.ticket_price:
             raise HTTPException(
                 status_code=400,
                 detail="Saldo tidak cukup"
@@ -55,14 +49,14 @@ def register_ticket_service(
         
         # KURANGI SALDO
        
-        balance.balance -= TICKET_PRICE
+        balance.balance -= event.ticket_price
 
        
         # CATAT POINT TRANSACTION
         
         point_transaction = PointTransaction(
             user_id=user_id,
-            amount=TICKET_PRICE,
+            amount=event.ticket_price,
             transaction_type="deduct"
         )
 
@@ -74,7 +68,8 @@ def register_ticket_service(
         ticket = TicketRegistration(
             user_id=user_id,
             event_id=event_id,
-            status="PENDING"
+            status="PENDING",
+            point_spent=event.ticket_price
         )
 
         db.add(ticket)
@@ -97,9 +92,7 @@ def register_ticket_service(
         }
 
     except Exception as e:
-
         # rollback otomatis
         db.rollback()
-
         raise e
 
