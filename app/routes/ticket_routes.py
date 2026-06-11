@@ -13,7 +13,7 @@ router = APIRouter()
 
 # Di dalam routes/ticket_routes.py
 
-@router.post("/ticket/register", status_code=status.HTTP_201_CREATED)
+@router.post("/", status_code=status.HTTP_201_CREATED)
 def register_ticket(req: TicketRegisterSchema, id_user: int, db: Session = Depends(get_db)):
     
     # 1. Tarik data User
@@ -48,7 +48,7 @@ def register_ticket(req: TicketRegisterSchema, id_user: int, db: Session = Depen
         raise HTTPException(status_code=400, detail="Fase General Ticketing tutup.")
 
     # 4. Validasi Saldo Poin (Pakai variabel harga yang baru)
-    point_balance = db.query(PointBalance).filter(PointBalance.id_user == id_user).first()
+    point_balance = db.query(Point_Balance).filter(Point_Balance.id_user == id_user).first()
     if not point_balance or point_balance.balance < current_ticket_price:
         raise HTTPException(status_code=400, detail="Saldo poin Anda tidak mencukupi.")
 
@@ -60,7 +60,7 @@ def register_ticket(req: TicketRegisterSchema, id_user: int, db: Session = Depen
         point_balance.updated_at = now
         
         # B. Catat transaksi poin
-        point_transaction = PointTransaction(
+        point_transaction = Point_Transaction(
             id_user=id_user,
             amount=-current_ticket_price, # Minus artinya saldo keluar
             type="deduct",
@@ -72,7 +72,6 @@ def register_ticket(req: TicketRegisterSchema, id_user: int, db: Session = Depen
         new_ticket = TicketRegistration(
             id_user=id_user,
             id_event=req.id_event,
-            attendee_name=user.full_name,
             phase=req.phase,
             status="PENDING",
             point_spent=current_ticket_price, # Rekam berapa poin yang di-spend untuk tiket ini
