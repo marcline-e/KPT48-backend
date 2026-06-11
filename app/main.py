@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routes.auth_routes import router as auth_router
 from app.routes.event_routes import router as event_router
+from app.routes.ticket_routes import router as ticket_routes
 from app.core.exception_handler import register_exception_handlers
 from app.database.mysql import engine, Base
 import app.models
@@ -27,6 +28,7 @@ app.add_middleware(
 # 2. Registrasi Router
 app.include_router(auth_router)
 app.include_router(event_router)
+app.include_router(ticket_routes)
 
 # 3. Registrasi Global Exception Handler
 register_exception_handlers(app)
