@@ -3,7 +3,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 
-from app.database.sql_engine import get_db 
+from app.database.mysql import get_db 
 from app.models.user import User
 from app.schemas.user_schema import UserCreate, UserResponse
 from app.core.security import (

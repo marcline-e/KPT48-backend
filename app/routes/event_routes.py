@@ -11,11 +11,11 @@ router = APIRouter(
 )
 
 
-@router.get("/test")
-def event_test():
-    return {
-        "message": "Event route working"
-    }
+# @router.get("/test")
+# def event_test():
+#     return {
+#         "message": "Event route working"
+#     }
 
 @router.post("/")
 def create_event(

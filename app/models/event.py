@@ -10,6 +10,7 @@ class Event(Base):
     set_list = Column(String(100), nullable=False)
     event_date = Column(DateTime, nullable=False)
     total_quota = Column(Integer, nullable=False)
+    ticket_price = Column(Integer, nullable=False) # Harga tiket dalam satuan point
 
     # Waktu fase pendaftaran
     official_open_at = Column(DateTime, nullable=False)
