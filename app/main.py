@@ -5,6 +5,7 @@ from app.routes.event_routes import router as event_router
 from app.routes.ticket_routes import router as ticket_routes
 from app.core.exception_handler import register_exception_handlers
 from app.database.mysql import engine, Base
+from app.routes.transaction_routes import router as transaction_router
 
 Base.metadata.create_all(bind=engine)
 
@@ -32,6 +33,9 @@ register_exception_handlers(app)
 
 app.include_router(auth_router, prefix="/auth", tags=["Authentication"])
 app.include_router(event_router, prefix="/event", tags=["Event"])
+app.include_router(auth_router, prefix="/auth", tags=["Authentication"])
+app.include_router(event_router, prefix="/event", tags=["Event"])
+app.include_router(transaction_router, prefix="/transaction", tags=["Transaction"]) # <--- TAMBAHKAN INI
 
 @app.get("/")
 async def root():
