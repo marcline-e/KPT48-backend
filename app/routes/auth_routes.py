@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 
@@ -16,11 +16,12 @@ from app.core.security import (
 # 1. Definisi Router
 router = APIRouter(tags=["Authentication"])
 
-# 2. Definisi Dependency untuk "Satpam" (OAuth2)
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+# 2. Definisi Dependency untuk "Satpam" (Menggunakan HTTPBearer)
+security_scheme = HTTPBearer()
 
-# Pindahkan fungsi ini ke atas sini!
-def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security_scheme), db: Session = Depends(get_db)):
+    # HTTPBearer otomatis mengambil token dari header "Authorization: Bearer <token>"
+    token = credentials.credentials
     email = decode_access_token(token)
     user = db.query(User).filter(User.email == email).first()
     if not user:
@@ -32,7 +33,7 @@ class UserLogin(BaseModel):
     email: str
     password: str
 
-# 4. Rute (Routes) - Fungsi ini sekarang aman karena get_current_user sudah dikenal
+# 4. Rute (Routes)
 @router.post("/register", response_model=UserResponse)
 def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
     db_user = db.query(User).filter(User.email == user_data.email).first()
@@ -65,7 +66,7 @@ def login(user_credentials: UserLogin, db: Session = Depends(get_db)):
     access_token = create_access_token(data={"sub": user.email})
     return {"access_token": access_token, "token_type": "bearer"}
 
-@router.get("/me")
+@router.get("/me", dependencies=[Depends(security_scheme)])
 def get_my_profile(current_user: User = Depends(get_current_user)):
     return {
         "email": current_user.email,

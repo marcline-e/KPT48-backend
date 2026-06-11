@@ -2,6 +2,7 @@ import bcrypt
 from datetime import datetime, timedelta
 from typing import Optional
 from jose import jwt
+from fastapi import HTTPException, status
 
 SECRET_KEY = "kpt48-rahasia-banget"
 ALGORITHM = "HS256"
@@ -31,12 +32,19 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
 from fastapi import HTTPException, status # Tambahkan import ini di atas
 
 def decode_access_token(token: str):
+    print("\n" + "="*30)
+    print(f"DEBUG: Token yang diterima backend:")
+    print(token)
+    print("="*30 + "\n")
+    
     try:
         # Decode token menggunakan SECRET_KEY
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         email: str = payload.get("sub")
+        print(f"DEBUG: Sukses membaca token! Emailnya adalah: {email}")
         if email is None:
             raise HTTPException(status_code=401, detail="Token tidak valid")
         return email
-    except jwt.JWTError:
+    except jwt.JWTError as e:
+        print(f"DEBUG: JWT ERROR! Satpam menolak karena: {e}")
         raise HTTPException(status_code=401, detail="Token tidak valid")
