@@ -1,6 +1,11 @@
 fastapi
 uvicorn
 sqlalchemy
+pymysql
 pymongo
 python-dotenv
-pymysql
+python-jose[cryptography]
+passlib[bcrypt]
+pydantic[email]
+email-validator
+python-multipart

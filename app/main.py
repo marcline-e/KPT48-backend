@@ -5,6 +5,7 @@ from app.routes.event_routes import router as event_router
 from app.routes.ticket_routes import router as ticket_routes
 from app.core.exception_handler import register_exception_handlers
 from app.database.mysql import engine, Base
+from app.routes.transaction_routes import router as transaction_router
 
 from app.models.user import User
 from app.models.event import Event # <--- PASTIKAN BARIS INI ADA
