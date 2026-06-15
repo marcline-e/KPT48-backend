@@ -15,33 +15,40 @@ router = APIRouter(tags=["Transaction"])
 def topup_points(
     request: TopUpRequest, 
     db: Session = Depends(get_db), 
-    current_user: User = Depends(get_current_user) # Gembok terpasang di sini!
+    current_user = Depends(get_current_user)
 ):
-    # 1. Gunakan id_user sesuai dengan model Point_Balance
-    wallet = db.query(Point_Balance).filter(Point_Balance.id_user == current_user.id_user).first()
+    user_id = current_user["id_user"]
     
-    # Kalau belum punya, kita buatkan dompet baru dengan saldo awal 0
+    # 1. Cek saldo saat ini
+    balance_query = text("SELECT balance FROM point_balances WHERE id_user = :id_user")
+    wallet = db.execute(balance_query, {"id_user": user_id}).mappings().first()
+    
     if not wallet:
-        wallet = Point_Balance(id_user=current_user.id_user, balance=0)
-        db.add(wallet)
+        # Insert dompet baru
+        db.execute(text("INSERT INTO point_balances (id_user, balance) VALUES (:id_user, 0)"), {"id_user": user_id})
+        current_balance = 0
+    else:
+        current_balance = wallet["balance"]
     
-    # 2. Tambahkan saldo sesuai request
-    wallet.balance += request.amount
+    new_balance = current_balance + request.amount
     
-    # 3. Catat riwayat transaksi (Gunakan id_user dan type sesuai model Point_Transaction)
-    transaction_log = Point_Transaction(
-        id_user=current_user.id_user,
-        amount=request.amount,
-        type="topup"  # Mengikuti standar penamaan temanmu di komentar file model
+    # 2. Update saldo
+    db.execute(
+        text("UPDATE point_balances SET balance = :balance WHERE id_user = :id_user"),
+        {"balance": new_balance, "id_user": user_id}
     )
-    db.add(transaction_log)
+    
+    # 3. Catat riwayat
+    db.execute(
+        text("INSERT INTO point_transactions (id_user, amount, type) VALUES (:id_user, :amount, 'topup')"),
+        {"id_user": user_id, "amount": request.amount}
+    )
     
     # 4. Simpan semua perubahan ke database (Commit)
     db.commit()
-    db.refresh(wallet)
     
     return {
         "success": True,
         "message": f"Berhasil top-up {request.amount} poin!",
-        "current_balance": wallet.balance
+        "current_balance": new_balance
     }

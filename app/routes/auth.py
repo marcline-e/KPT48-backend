@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-# Ganti import-nya dari file mysql.py ke sql_engine.py
-from app.database.sql_engine import get_db 
+from app.database.mysql import get_db 
 from app.schemas.user import UserCreate, UserResponse
 from app.models.user import User
 

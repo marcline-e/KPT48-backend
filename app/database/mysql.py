@@ -11,7 +11,10 @@ DATABASE_URL = os.getenv("MYSQL_URL")
 
 print(DATABASE_URL)
 # Buat engine SQLAlchemy
-engine = create_engine(DATABASE_URL)
+engine = create_engine(DATABASE_URL, echo=True)
+
+# Base class untuk deklarasi model (Dibutuhkan untuk metadata tabel di main.py)
+Base = declarative_base()
 
 # Session database
 SessionLocal = sessionmaker(
@@ -20,12 +23,9 @@ SessionLocal = sessionmaker(
     bind=engine
 )
 
-# Base class ORM
-Base = declarative_base()
-
 def get_db():
     db = SessionLocal()
     try:
         yield db
     finally:
-        db .close()
+        db.close()

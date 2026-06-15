@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 from pydantic import BaseModel
 
 from app.database.mysql import get_db 
-from app.models.user import User
 from app.schemas.user_schema import UserCreate, UserResponse
 from app.core.security import (
     get_password_hash, 
@@ -23,7 +23,9 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(securit
     # HTTPBearer otomatis mengambil token dari header "Authorization: Bearer <token>"
     token = credentials.credentials
     email = decode_access_token(token)
-    user = db.query(User).filter(User.email == email).first()
+    query = text("SELECT * FROM users WHERE email = :email")
+    user = db.execute(query, {"email": email}).mappings().first()
+    
     if not user:
         raise HTTPException(status_code=401, detail="User tidak ditemukan")
     return user
@@ -36,40 +38,55 @@ class UserLogin(BaseModel):
 # 4. Rute (Routes)
 @router.post("/register", response_model=UserResponse)
 def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
-    db_user = db.query(User).filter(User.email == user_data.email).first()
+    check_query = text("SELECT email FROM users WHERE email = :email")
+    db_user = db.execute(check_query, {"email": user_data.email}).first()
+    
     if db_user:
         raise HTTPException(status_code=400, detail="Email sudah terdaftar!")
 
     hashed_pwd = get_password_hash(user_data.password)
     
-    new_user = User(
-        email=user_data.email,
-        username=user_data.username,
-        full_name=user_data.full_name,
-        nik=user_data.nik,
-        password_hash=hashed_pwd 
-    )
-    db.add(new_user)
+    insert_query = text("""
+        INSERT INTO users (email, username, full_name, nik, password_hash)
+        VALUES (:email, :username, :full_name, :nik, :password_hash)
+    """)
+    
+    db.execute(insert_query, {
+    result = db.execute(insert_query, {
+        "email": user_data.email,
+        "username": user_data.username,
+        "full_name": user_data.full_name,
+        "nik": user_data.nik,
+        "password_hash": hashed_pwd
+    })
     db.commit()
-    db.refresh(new_user)
-    return new_user
+    return {**user_data.dict(), "id_user": 0} # id_user bisa diambil jika diperlukan
+    
+    return {
+        "id_user": result.lastrowid,
+        "email": user_data.email,
+        "username": user_data.username,
+        "role": "GENERAL"
+    }
 
 @router.post("/login")
 def login(user_credentials: UserLogin, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.email == user_credentials.email).first()
+    query = text("SELECT * FROM users WHERE email = :email")
+    user = db.execute(query, {"email": user_credentials.email}).mappings().first()
+    
     if not user:
         raise HTTPException(status_code=404, detail="Email tidak ditemukan")
 
-    if not verify_password(user_credentials.password, user.password_hash):
+    if not verify_password(user_credentials.password, user["password_hash"]):
         raise HTTPException(status_code=401, detail="Password salah")
 
-    access_token = create_access_token(data={"sub": user.email})
+    access_token = create_access_token(data={"sub": user["email"]})
     return {"access_token": access_token, "token_type": "bearer"}
 
 @router.get("/me", dependencies=[Depends(security_scheme)])
-def get_my_profile(current_user: User = Depends(get_current_user)):
+def get_my_profile(current_user=Depends(get_current_user)):
     return {
-        "email": current_user.email,
-        "username": current_user.username,
-        "full_name": current_user.full_name
+        "email": current_user["email"],
+        "username": current_user["username"],
+        "full_name": current_user["full_name"]
     }
