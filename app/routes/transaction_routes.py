@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from app.database.sql_engine import get_db
+from app.database.mysql import get_db
 from app.models.user import User
 from app.models.point_balance import Point_Balance
 from app.models.point_transaction import Point_Transaction
