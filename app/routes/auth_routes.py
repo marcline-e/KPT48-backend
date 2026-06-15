@@ -51,7 +51,6 @@ def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
         VALUES (:email, :username, :full_name, :nik, :password_hash)
     """)
     
-    db.execute(insert_query, {
     result = db.execute(insert_query, {
         "email": user_data.email,
         "username": user_data.username,
@@ -60,7 +59,6 @@ def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
         "password_hash": hashed_pwd
     })
     db.commit()
-    return {**user_data.dict(), "id_user": 0} # id_user bisa diambil jika diperlukan
     
     return {
         "id_user": result.lastrowid,
