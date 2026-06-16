@@ -1,27 +1,5 @@
 import random
 
-# ======================================
-# DUMMY DATA (nanti diganti dari database)
-# ======================================
-
-participants = [
-    {"ticket_id": 1, "user_id": 1, "username": "Andi", "loss_count": 0},
-    {"ticket_id": 2, "user_id": 2, "username": "Budi", "loss_count": 2},
-    {"ticket_id": 3, "user_id": 3, "username": "Citra", "loss_count": 1},
-    {"ticket_id": 4, "user_id": 4, "username": "Dina", "loss_count": 0},
-    {"ticket_id": 5, "user_id": 5, "username": "Eko", "loss_count": 4},
-    {"ticket_id": 6, "user_id": 6, "username": "Farah", "loss_count": 3},
-    {"ticket_id": 7, "user_id": 7, "username": "Gilang", "loss_count": 0},
-    {"ticket_id": 8, "user_id": 8, "username": "Hana", "loss_count": 2},
-    {"ticket_id": 9, "user_id": 9, "username": "Indra", "loss_count": 5},
-    {"ticket_id": 10, "user_id": 10, "username": "Jihan", "loss_count": 1},
-    {"ticket_id": 11, "user_id": 11, "username": "Kevin", "loss_count": 0},
-    {"ticket_id": 12, "user_id": 12, "username": "Lala", "loss_count": 3},
-    {"ticket_id": 13, "user_id": 13, "username": "Miko", "loss_count": 0},
-    {"ticket_id": 14, "user_id": 14, "username": "Nadia", "loss_count": 4},
-    {"ticket_id": 15, "user_id": 15, "username": "Oka", "loss_count": 2},
-]
-
 TOTAL_QUOTA = 6
 K = 0.15
 
