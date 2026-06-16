@@ -27,10 +27,10 @@ app.add_middleware(
 # Registrasi Global Exception Handler
 register_exception_handlers(app)
 
-app.include_router(auth_router, prefix="/auth", tags=["Authentication"])
-app.include_router(event_router, prefix="/event", tags=["Event"])
-app.include_router(ticket_routes, prefix="/ticket", tags=["Ticket"])
-app.include_router(transaction_router, prefix="/transaction", tags=["Transaction"])
+app.include_router(auth_router)
+app.include_router(event_router)
+app.include_router(ticket_routes)
+app.include_router(transaction_router)
 app.include_router(roulette_router)
 
 @app.get("/")
