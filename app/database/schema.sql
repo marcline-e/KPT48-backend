@@ -23,7 +23,7 @@ CREATE TABLE users (
 -- 2. Tabel events
 CREATE TABLE events (
     id_event INT AUTO_INCREMENT PRIMARY KEY,
-    set_list VARCHAR(100) NOT NULL,
+    set_list VARCHAR(100) NOT NULL UNIQUE,
     event_date DATETIME NOT NULL,
     total_quota INT NOT NULL,
     ticket_price INT NOT NULL,

@@ -1,5 +1,5 @@
 from app.database.mongo import mongodb
-from app.models.roulette_log_schema import create_roulette_log
+from app.database.roulette_log_schema import create_roulette_log
 
 log = create_roulette_log(
     event_id=4,
