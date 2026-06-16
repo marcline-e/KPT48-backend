@@ -104,12 +104,14 @@ def login(
 
 @router.post("/upgrade")
 def upgrade_to_official(
-    payload: UpgradeMembership,
     current_user: dict = Depends(get_current_user), # Langsung dapet user dari token!
     conn: pymysql.connections.Connection = Depends(get_db)
 ):
     upgrade_cost = 200 # Set harga poin untuk upgrade
-    id_user = current_user["id_user"] # Sesuaikan dengan nama kolom ID di database kalian
+    id_user = current_user["id_user"]
+    username = current_user["username"]
+    full_name = current_user["full_name"]
+    role = current_user["role"]
     
     cursor = conn.cursor(pymysql.cursors.DictCursor)
     
@@ -121,7 +123,7 @@ def upgrade_to_official(
         cursor.execute("""
             SELECT u.role, p.balance 
             FROM users u 
-            JOIN point_balance p ON u.id_user = p.id_user 
+            JOIN point_balances p ON u.id_user = p.id_user 
             WHERE u.id_user = %s FOR UPDATE;
         """, (id_user,))
         
@@ -138,14 +140,14 @@ def upgrade_to_official(
         # 4. Eksekusi rangkaian modifikasi data
         # Potong Poin
         cursor.execute("""
-            UPDATE point_balance 
-            SET balance = balance - %s, updated_at = NOW() 
+            UPDATE point_balances 
+            SET balance = balance - %s, last_updated_at = NOW() 
             WHERE id_user = %s;
         """, (upgrade_cost, id_user))
 
         # Catat Log Transaksi
         cursor.execute("""
-            INSERT INTO point_transaction (id_user, amount, type, created_at) 
+            INSERT INTO point_transactions (id_user, amount, type, created_at) 
             VALUES (%s, %s, 'membership', NOW());
         """, (id_user, upgrade_cost))
 
@@ -158,9 +160,9 @@ def upgrade_to_official(
 
         # Buat Official Profile
         cursor.execute("""
-            INSERT INTO official_profile (id_user, full_name, nik, phone, is_active) 
-            VALUES (%s, %s, %s, %s, 1);
-        """, (id_user, payload.full_name, payload.nik, payload.phone))
+            INSERT INTO official_profiles (id_user, is_active) 
+            VALUES (%s, 1);
+        """, (id_user))
 
         # 5. Commit transaksi jika semua mulus
         conn.commit()
