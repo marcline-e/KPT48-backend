@@ -70,20 +70,94 @@ def get_pending_registrants(event_id):
         conn.close()
 
 
-def update_ticket_status(ticket_id, status):
+# def update_ticket_status(ticket_id, status):
+#     conn = get_db_connection()
+
+#     try:
+#         with conn.cursor() as cursor:
+#             query = """
+#                 UPDATE ticket_registrations
+#                 SET status = %s
+#                 WHERE id_ticket_registration = %s
+#             """
+
+#             cursor.execute(
+#                 query,
+#                 (status, ticket_id)
+#             )
+
+#         conn.commit()
+
+#     finally:
+#         conn.close()
+
+
+# def reset_loss_count(user_id):
+#     conn = get_db_connection()
+
+#     try:
+#         with conn.cursor() as cursor:
+#             query = """
+#                 UPDATE official_profiles
+#                 SET loss_count = 0
+#                 WHERE id_user = %s
+#             """
+
+#             cursor.execute(
+#                 query,
+#                 (user_id,)
+#             )
+
+#         conn.commit()
+
+#     finally:
+#         conn.close()
+
+
+# def increment_loss_count(user_id):
+#     conn = get_db_connection()
+
+#     try:
+#         with conn.cursor() as cursor:
+#             query = """
+#                 UPDATE official_profiles
+#                 SET loss_count = loss_count + 1
+#                 WHERE id_user = %s
+#             """
+
+#             cursor.execute(
+#                 query,
+#                 (user_id,)
+#             )
+
+#         conn.commit()
+
+#     finally:
+#         conn.close()
+
+
+def batch_update_ticket_status(ticket_ids, status):
+    if not ticket_ids:
+        return
+
     conn = get_db_connection()
 
     try:
         with conn.cursor() as cursor:
-            query = """
+
+            placeholders = ",".join(
+                ["%s"] * len(ticket_ids)
+            )
+
+            query = f"""
                 UPDATE ticket_registrations
                 SET status = %s
-                WHERE id_ticket_registration = %s
+                WHERE id_ticket_registration IN ({placeholders})
             """
 
             cursor.execute(
                 query,
-                (status, ticket_id)
+                [status] + ticket_ids
             )
 
         conn.commit()
@@ -92,20 +166,28 @@ def update_ticket_status(ticket_id, status):
         conn.close()
 
 
-def reset_loss_count(user_id):
+def batch_reset_loss_count(user_ids):
+    if not user_ids:
+        return
+
     conn = get_db_connection()
 
     try:
         with conn.cursor() as cursor:
-            query = """
+
+            placeholders = ",".join(
+                ["%s"] * len(user_ids)
+            )
+
+            query = f"""
                 UPDATE official_profiles
                 SET loss_count = 0
-                WHERE id_user = %s
+                WHERE id_user IN ({placeholders})
             """
 
             cursor.execute(
                 query,
-                (user_id,)
+                user_ids
             )
 
         conn.commit()
@@ -114,20 +196,28 @@ def reset_loss_count(user_id):
         conn.close()
 
 
-def increment_loss_count(user_id):
+def batch_increment_loss_count(user_ids):
+    if not user_ids:
+        return
+
     conn = get_db_connection()
 
     try:
         with conn.cursor() as cursor:
-            query = """
+
+            placeholders = ",".join(
+                ["%s"] * len(user_ids)
+            )
+
+            query = f"""
                 UPDATE official_profiles
                 SET loss_count = loss_count + 1
-                WHERE id_user = %s
+                WHERE id_user IN ({placeholders})
             """
 
             cursor.execute(
                 query,
-                (user_id,)
+                user_ids
             )
 
         conn.commit()

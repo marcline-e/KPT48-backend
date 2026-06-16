@@ -1,9 +1,13 @@
 from app.repositories.roulette_repository import (
     get_event_by_id,
     get_pending_registrants,
-    update_ticket_status,
-    reset_loss_count,
-    increment_loss_count
+    batch_update_ticket_status,
+    batch_reset_loss_count,
+    batch_increment_loss_count
+)
+
+from app.repositories.roulette_log_repository import (
+    save_roulette_log
 )
 
 from app.services.roulette_algorithm import execute_roulette
@@ -30,18 +34,25 @@ def execute_roulette_service(event_id):
         id_event=event_id
     )
 
-    # update winner
-    #for ticket_id in result["winner_ticket_ids"]:
-        #update_ticket_status(ticket_id, "WIN")
+    # ==========================
+    # DAY 7 - ROULETTE LOG
+    # ==========================
+    log_document = {
+        "event_id": result["id_event"],
+        "total_participants": result["total_participants"],
+        "total_quota": result["total_quota"],
 
-    #for user_id in result["winner_ids"]:
-        #reset_loss_count(user_id)
+        "pool_a_count": result["pool_a_count"],
+        "pool_b_count": result["pool_b_count"],
 
-    # update loser
-    #for ticket_id in result["loser_ticket_ids"]:
-        #update_ticket_status(ticket_id, "LOSE")
+        "winner_count": len(result["winner_ids"]),
+        "loser_count": len(result["loser_ids"]),
 
-    #for user_id in result["loser_ids"]:
-        #increment_loss_count(user_id)
+        "winner_ids": result["winner_ids"],
+        "loser_ids": result["loser_ids"]
+    }
+
+    save_roulette_log(log_document)
+
 
     return result
