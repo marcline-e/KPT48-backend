@@ -136,6 +136,11 @@ def execute_roulette(participants, total_quota, id_event):
 
     add_weight(participants)
 
+    print("\nPARTICIPANTS")
+
+    for p in participants:
+        print(p)
+
     pool_a, pool_b = split_pool(participants)
 
     ta, tb = calculate_quota(total_quota)
@@ -203,8 +208,9 @@ def execute_roulette(participants, total_quota, id_event):
 if __name__ == "__main__":
 
     result = execute_roulette(
-        participants,
-        TOTAL_QUOTA
+        participants=participants,
+        total_quota=TOTAL_QUOTA,
+        id_event=1
     )
 
     print("\n=== ROULETTE RESULT ===")

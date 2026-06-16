@@ -1,9 +1,12 @@
-from app.database.mongo import mongodb
+from app.repositories.roulette_log_repository import (
+    save_roulette_log
+)
 
-try:
-    print(mongodb.list_collection_names())
-    print("MongoDB Connected!")
+test_data = {
+    "event_id": 1,
+    "message": "MongoDB test"
+}
 
-except Exception as e:
-    print("Connection Failed")
-    print(e)
+result = save_roulette_log(test_data)
+
+print("Inserted ID:", result)
