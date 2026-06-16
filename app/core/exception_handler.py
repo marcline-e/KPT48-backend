@@ -1,16 +1,16 @@
 from fastapi import Request, HTTPException
 from fastapi.responses import JSONResponse
-from sqlalchemy.exc import SQLAlchemyError
 from pymongo.errors import PyMongoError
 from fastapi.exceptions import RequestValidationError
+import pymysql
 
 def register_exception_handlers(app):
 
     # SQLAlchemy Error
-    @app.exception_handler(SQLAlchemyError)
-    async def sqlalchemy_exception_handler(
+    @app.exception_handler(pymysql.err.Error)
+    async def mysql_exception_handler(
         request: Request,
-        exc: SQLAlchemyError
+        exc: pymysql.err.Error
     ):
         return JSONResponse(
             status_code=500,

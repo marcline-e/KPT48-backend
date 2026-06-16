@@ -1,9 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from sqlalchemy import text
+from fastapi import APIRouter, Depends, HTTPException, status
+import pymysql
 
 from app.database.mysql import get_db
 from app.schemas.event_schema import EventCreate
+from app.routes.auth_routes import get_current_user
 
 router = APIRouter(
     prefix="/event",
@@ -20,8 +20,16 @@ router = APIRouter(
 @router.post("/")
 def create_event(
     event: EventCreate,
-    db: Session = Depends(get_db)
+    conn: pymysql.connections.Connection = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
 ):
+
+    # KUNCI EXCEPTION ROLE ADMIN
+    if current_user["role"] != "ADMIN":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Akses ditolak! Anda bukan Administrator."
+        )
     
     if event.total_quota <= 0:
         raise HTTPException(
@@ -41,28 +49,37 @@ def create_event(
             detail="General phase tidak valid"
         )
 
-    insert_query = text("""
+    cursor = conn.cursor()
+    insert_query = """
         INSERT INTO events (set_list, event_date, total_quota, ticket_price, 
                           official_open_at, official_close_at, general_open_at, 
                           general_close_at, status)
-        VALUES (:set_list, :event_date, :total_quota, :ticket_price, 
-                :official_open_at, :official_close_at, :general_open_at, 
-                :general_close_at, 'DRAFT')
-    """)
-    
-    result = db.execute(insert_query, {
-        "set_list": event.set_list,
-        "event_date": event.event_date,
-        "total_quota": event.total_quota,
-        "ticket_price": event.ticket_price,
-        "official_open_at": event.official_open_at,
-        "official_close_at": event.official_close_at,
-        "general_open_at": event.general_open_at,
-        "general_close_at": event.general_close_at
-    })
-    db.commit()
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 'DRAFT')
+    """
+
+    try:
+        # Eksekusi dengan parameter tuple untuk mencegah SQL Injection
+        cursor.execute(insert_query, (
+            event.set_list, 
+            event.event_date, 
+            event.total_quota, 
+            event.ticket_price, 
+            event.official_open_at, 
+            event.official_close_at, 
+            event.general_open_at, 
+            event.general_close_at
+        ))
+        conn.commit() # Wajib commit!
+        new_event_id = cursor.lastrowid
+
+    except pymysql.err.Error as e:
+        conn.rollback() # Kalau gagal insert, batalkan transaksi
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+        
+    finally:
+        cursor.close()
 
     return {
-        "message": "Event berhasil dibuat",
-        "id_event": result.lastrowid
+        "message": "Event berhasil dibuat oleh admin",
+        "id_event": new_event_id
     }

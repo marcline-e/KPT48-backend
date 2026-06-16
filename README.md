@@ -44,6 +44,11 @@ KPT48-fondasi/
    cp .env.example .env
    ```
 
+4. **Eksekusi Database**:
+   ```bash
+   python app/database/init_db.py
+   ```
+
 ## Cara Menjalankan
 
 Jalankan server pengembangan menggunakan Uvicorn:
