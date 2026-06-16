@@ -67,3 +67,37 @@ def topup_points(
     finally:
         # Tutup cursor untuk menghemat memori server
         cursor.close()
+
+@router.get("/balance", status_code=status.HTTP_200_OK)
+def get_point_balance(
+    conn: pymysql.connections.Connection = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    user_id = current_user["id_user"]
+    cursor = conn.cursor()
+    
+    try:
+        # Raw query untuk mengecek dompet
+        sql = "SELECT balance FROM point_balances WHERE id_user = %s"
+        cursor.execute(sql, (user_id,))
+        wallet = cursor.fetchone()
+
+        if not wallet:
+            return {
+                "success": True,
+                "message": "Kamu belum memiliki dompet poin.",
+                "balance": 0
+            }
+
+        return {
+            "success": True,
+            "message": "Berhasil mengambil data saldo!",
+            "balance": wallet["balance"]
+        }
+
+    except pymysql.err.Error as e:
+        raise HTTPException(status_code=500, detail=f"Database execution error: {str(e)}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
+    finally:
+        cursor.close()

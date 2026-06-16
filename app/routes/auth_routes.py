@@ -4,7 +4,7 @@ from pydantic import BaseModel
 import pymysql
 
 from app.database.mysql import get_db 
-from app.schemas.user_schema import UserCreate, UserResponse
+from app.schemas.user_schema import UserCreate, UserResponse, UpgradeMembership
 from app.core.security import (
     get_password_hash, 
     verify_password, 
@@ -101,6 +101,83 @@ def login(
 
     access_token = create_access_token(data={"sub": user["email"]})
     return {"access_token": access_token, "token_type": "bearer"}
+
+@router.post("/upgrade")
+def upgrade_to_official(
+    current_user: dict = Depends(get_current_user), # Langsung dapet user dari token!
+    conn: pymysql.connections.Connection = Depends(get_db)
+):
+    upgrade_cost = 200 # Set harga poin untuk upgrade
+    id_user = current_user["id_user"]
+    username = current_user["username"]
+    full_name = current_user["full_name"]
+    role = current_user["role"]
+    
+    cursor = conn.cursor(pymysql.cursors.DictCursor)
+    
+    try:
+        # 1. Mulai Transaksi ACID (Krusial!)
+        conn.begin()
+
+        # 2. Lock baris user dan poin biar ga ada race condition
+        cursor.execute("""
+            SELECT u.role, p.balance 
+            FROM users u 
+            JOIN point_balances p ON u.id_user = p.id_user 
+            WHERE u.id_user = %s FOR UPDATE;
+        """, (id_user,))
+        
+        user_data = cursor.fetchone()
+
+        # 3. Validasi Bisnis
+        if not user_data:
+            raise HTTPException(status_code=404, detail="Data poin user tidak ditemukan.")
+        if user_data['role'].upper() == 'OFFICIAL':
+            raise HTTPException(status_code=400, detail="User sudah menjadi Official Member.")
+        if user_data['balance'] < upgrade_cost:
+            raise HTTPException(status_code=400, detail="Poin tidak mencukupi untuk upgrade.")
+
+        # 4. Eksekusi rangkaian modifikasi data
+        # Potong Poin
+        cursor.execute("""
+            UPDATE point_balances 
+            SET balance = balance - %s, last_updated_at = NOW() 
+            WHERE id_user = %s;
+        """, (upgrade_cost, id_user))
+
+        # Catat Log Transaksi
+        cursor.execute("""
+            INSERT INTO point_transactions (id_user, amount, type, created_at) 
+            VALUES (%s, %s, 'membership', NOW());
+        """, (id_user, upgrade_cost))
+
+        # Update Role User
+        cursor.execute("""
+            UPDATE users 
+            SET role = 'OFFICIAL' 
+            WHERE id_user = %s;
+        """, (id_user,))
+
+        # Buat Official Profile
+        cursor.execute("""
+            INSERT INTO official_profiles (id_user, is_active) 
+            VALUES (%s, 1);
+        """, (id_user))
+
+        # 5. Commit transaksi jika semua mulus
+        conn.commit()
+        return {"status": "success", "message": "Welcome to Official Member! Poin berhasil dipotong."}
+
+    except HTTPException:
+        # Kalau errornya dari validasi kita sendiri, lempar lagi ke atas
+        conn.rollback()
+        raise
+    except Exception as e:
+        # Kalau errornya dari database, rollback dan kasih tau errornya
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Database transaction failed: {str(e)}")
+    finally:
+        cursor.close()
 
 @router.get("/me", dependencies=[Depends(security_scheme)])
 def get_my_profile(current_user=Depends(get_current_user)):
