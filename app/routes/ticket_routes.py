@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 import pymysql
 from datetime import datetime
+import random  # Ditambahkan untuk fungsi acak algoritma gacha
 
 from app.schemas.ticket_schema import TicketRegisterSchema
 from app.database.mysql import get_db
@@ -77,7 +78,7 @@ def register_ticket(
             INSERT INTO ticket_registrations (id_user, id_event, phase, status, point_spent) 
             VALUES (%s, %s, %s, 'PENDING', %s)
             """,
-            (id_user, req.id_event, phase_terpilih, current_ticket_price) # Perhatikan phase_terpilih di sini
+            (id_user, req.id_event, phase_terpilih, current_ticket_price)
         )
         ticket_id = cursor.lastrowid
 
