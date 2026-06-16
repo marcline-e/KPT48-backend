@@ -1,31 +1,23 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base, sessionmaker
-from dotenv import load_dotenv
+import pymysql
 import os
+from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv(dotenv_path=".env")
+load_dotenv()
 
-# Ambil URL MySQL dari .env
-DATABASE_URL = os.getenv("MYSQL_URL")
-
-print(DATABASE_URL)
-# Buat engine SQLAlchemy
-engine = create_engine(DATABASE_URL, echo=True)
-
-# Base class untuk deklarasi model (Dibutuhkan untuk metadata tabel di main.py)
-Base = declarative_base()
-
-# Session database
-SessionLocal = sessionmaker(
-    autocommit=False,
-    autoflush=False,
-    bind=engine
-)
+def get_db_connection():
+    # Fungsi ini akan dipanggil setiap kali API membutuhkan akses ke database
+    connection = pymysql.connect(
+        host=os.getenv("DB_HOST", "localhost"),
+        user=os.getenv("DB_USER", "root"),
+        password=os.getenv("DB_PASSWORD", ""), 
+        database=os.getenv("DB_NAME", "kpt48_ticketing"),
+        cursorclass=pymysql.cursors.DictCursor
+    )
+    return connection
 
 def get_db():
-    db = SessionLocal()
+    conn = get_db_connection()
     try:
-        yield db
+        yield conn
     finally:
-        db.close()
+        conn.close()

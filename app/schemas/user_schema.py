@@ -14,6 +14,3 @@ class UserResponse(BaseModel):
     email: EmailStr
     username: str
     role: str
-
-    class Config:
-        from_attributes = True

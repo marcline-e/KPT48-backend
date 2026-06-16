@@ -1,8 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from sqlalchemy.orm import Session
-from sqlalchemy import text
 from pydantic import BaseModel
+import pymysql
 
 from app.database.mysql import get_db 
 from app.schemas.user_schema import UserCreate, UserResponse
@@ -19,12 +18,19 @@ router = APIRouter(tags=["Authentication"])
 # 2. Definisi Dependency untuk "Satpam" (Menggunakan HTTPBearer)
 security_scheme = HTTPBearer()
 
-def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security_scheme), db: Session = Depends(get_db)):
+def get_current_user(
+    credentials: HTTPAuthorizationCredentials = Depends(security_scheme), 
+    conn: pymysql.connections.Connection = Depends(get_db)
+):
     # HTTPBearer otomatis mengambil token dari header "Authorization: Bearer <token>"
     token = credentials.credentials
     email = decode_access_token(token)
-    query = text("SELECT * FROM users WHERE email = :email")
-    user = db.execute(query, {"email": email}).mappings().first()
+    
+    cursor = conn.cursor()
+    query = "SELECT * FROM users WHERE email = %s"
+    cursor.execute(query, (email,))
+    user = cursor.fetchone()
+    cursor.close()
     
     if not user:
         raise HTTPException(status_code=401, detail="User tidak ditemukan")
@@ -37,40 +43,55 @@ class UserLogin(BaseModel):
 
 # 4. Rute (Routes)
 @router.post("/register", response_model=UserResponse)
-def register_user(user_data: UserCreate, db: Session = Depends(get_db)):
-    check_query = text("SELECT email FROM users WHERE email = :email")
-    db_user = db.execute(check_query, {"email": user_data.email}).first()
+def register_user(
+    user_data: UserCreate, 
+    conn: pymysql.connections.Connection = Depends(get_db)
+):
+    cursor = conn.cursor()
+    check_query = "SELECT email FROM users WHERE email = %s"
+    cursor.execute(check_query, (user_data.email,))
+    db_user = cursor.fetchone()
     
     if db_user:
+        cursor.close()
         raise HTTPException(status_code=400, detail="Email sudah terdaftar!")
 
     hashed_pwd = get_password_hash(user_data.password)
     
-    insert_query = text("""
+    insert_query = """
         INSERT INTO users (email, username, full_name, nik, password_hash)
-        VALUES (:email, :username, :full_name, :nik, :password_hash)
-    """)
+        VALUES (%s, %s, %s, %s, %s)
+    """
     
-    result = db.execute(insert_query, {
-        "email": user_data.email,
-        "username": user_data.username,
-        "full_name": user_data.full_name,
-        "nik": user_data.nik,
-        "password_hash": hashed_pwd
-    })
-    db.commit()
+    cursor.execute(insert_query, (
+        user_data.email,
+        user_data.username,
+        user_data.full_name,
+        user_data.nik,
+        hashed_pwd
+    ))
+    conn.commit()
+
+    new_id = cursor.lastrowid
+    cursor.close()
     
     return {
-        "id_user": result.lastrowid,
+        "id_user": new_id,
         "email": user_data.email,
         "username": user_data.username,
         "role": "GENERAL"
     }
 
 @router.post("/login")
-def login(user_credentials: UserLogin, db: Session = Depends(get_db)):
-    query = text("SELECT * FROM users WHERE email = :email")
-    user = db.execute(query, {"email": user_credentials.email}).mappings().first()
+def login(
+    user_credentials: UserLogin, 
+    conn: pymysql.connections.Connection = Depends(get_db)
+):
+    cursor = conn.cursor()
+    query = "SELECT * FROM users WHERE email = %s"
+    cursor.execute(query, (user_credentials.email,))
+    user = cursor.fetchone()
+    cursor.close()
     
     if not user:
         raise HTTPException(status_code=404, detail="Email tidak ditemukan")
@@ -86,5 +107,6 @@ def get_my_profile(current_user=Depends(get_current_user)):
     return {
         "email": current_user["email"],
         "username": current_user["username"],
-        "full_name": current_user["full_name"]
+        "full_name": current_user["full_name"],
+        "role": current_user["role"]
     }
