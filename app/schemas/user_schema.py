@@ -14,3 +14,9 @@ class UserResponse(BaseModel):
     email: EmailStr
     username: str
     role: str
+
+
+class UpgradeMembership(BaseModel):
+    username: str
+    full_name: str
+    role: str
