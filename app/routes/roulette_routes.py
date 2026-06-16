@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-import pymysql
 from datetime import datetime
 from app.services.roulette_service import execute_roulette_service
 from app.database.mysql import get_db
