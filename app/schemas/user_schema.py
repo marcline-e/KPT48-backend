@@ -17,6 +17,7 @@ class UserResponse(BaseModel):
 
 
 class UpgradeMembership(BaseModel):
+    id_user: int
     username: str
     full_name: str
     role: str
