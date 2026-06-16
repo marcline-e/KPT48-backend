@@ -15,6 +15,7 @@ def register_ticket(
     current_user: dict = Depends(get_current_user) 
 ):
     id_user = current_user["id_user"]
+    phase = current_user["role"]
     cursor = conn.cursor()
 
     if current_user["role"] == "ADMIN":
@@ -35,14 +36,30 @@ def register_ticket(
         current_ticket_price = event["ticket_price"]
 
         now = datetime.now()
-        if req.phase == "OFFICIAL" and not (event["official_open_at"] <= now <= event["official_close_at"]):
-            raise HTTPException(status_code=400, detail="Fase Official Ticketing tutup.")
+        user_role = current_user["role"].upper()
+        phase_terpilih = None
+
+        if user_role == "OFFICIAL":
+            if event["official_open_at"] <= now <= event["official_close_at"]:
+                phase_terpilih = "OFFICIAL"
+            else:
+                raise HTTPException(
+                    status_code=400, 
+                    detail="Fase pendaftaran khusus Official Member sedang tidak aktif atau sudah ditutup."
+                )
         
-        elif req.phase == "GENERAL":
+        elif user_role == "GENERAL":
             if not event["general_open_at"] or not event["general_close_at"]:
                 raise HTTPException(status_code=400, detail="Jadwal Fase General belum diatur.")
-            if not (event["general_open_at"] <= now <= event["general_close_at"]):
-                raise HTTPException(status_code=400, detail="Fase General Ticketing tutup.")
+            if event["general_open_at"] <= now <= event["general_close_at"]:
+                phase_terpilih = "GENERAL"
+            else:
+                raise HTTPException(
+                    status_code=400, 
+                    detail="Fase pendaftaran General Member belum dibuka atau sudah ditutup."
+                )
+        else:
+            raise HTTPException(status_code=403, detail="Role tidak dikenali.")
 
         cursor.execute("SELECT balance FROM point_balances WHERE id_user = %s FOR UPDATE", (id_user,))
         point_balance = cursor.fetchone()
@@ -60,7 +77,7 @@ def register_ticket(
             INSERT INTO ticket_registrations (id_user, id_event, phase, status, point_spent) 
             VALUES (%s, %s, %s, 'PENDING', %s)
             """,
-            (id_user, req.id_event, req.phase, current_ticket_price)
+            (id_user, req.id_event, phase_terpilih, current_ticket_price) # Perhatikan phase_terpilih di sini
         )
         ticket_id = cursor.lastrowid
 
