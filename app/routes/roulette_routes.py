@@ -1,7 +1,4 @@
-from fastapi import APIRouter
-from fastapi import status
-from fastapi import Depends
-from fastapi import HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 import pymysql
 from datetime import datetime
 from app.services.roulette_service import execute_roulette_service
