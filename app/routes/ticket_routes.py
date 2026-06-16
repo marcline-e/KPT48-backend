@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 import pymysql
 from datetime import datetime
+import random  # Ditambahkan untuk fungsi acak algoritma gacha
 
 from app.schemas.ticket_schema import TicketRegisterSchema
 from app.database.mysql import get_db
@@ -77,7 +78,7 @@ def register_ticket(
             INSERT INTO ticket_registrations (id_user, id_event, phase, status, point_spent) 
             VALUES (%s, %s, %s, 'PENDING', %s)
             """,
-            (id_user, req.id_event, phase_terpilih, current_ticket_price) # Perhatikan phase_terpilih di sini
+            (id_user, req.id_event, phase_terpilih, current_ticket_price)
         )
         ticket_id = cursor.lastrowid
 
@@ -109,83 +110,6 @@ def register_ticket(
         conn.rollback()
         raise HTTPException(status_code=500, detail=f"Transaksi gagal: {str(e)}")
         
-    finally:
-        cursor.close()
-
-@router.post("/{id_event}/execute-roulette", status_code=status.HTTP_200_OK)
-def trigger_roulette(
-    id_event: int,
-    phase: str, 
-    conn: pymysql.connections.Connection = Depends(get_db),
-    current_user: dict = Depends(get_current_user)
-):
-    if current_user.get("role") != "admin":
-        raise HTTPException(
-            status_code=403, 
-            detail="Forbidden: Only admins can trigger the roulette system!"
-        )
-
-    cursor = conn.cursor(pymysql.cursors.DictCursor)
-
-    try:
-        cursor.execute("""
-            SELECT official_close_at, general_close_at 
-            FROM events 
-            WHERE id_event = %s
-        """, (id_event,))
-        event = cursor.fetchone()
-
-        if not event:
-            raise HTTPException(status_code=404, detail="Event tidak ditemukan.")
-
-        now = datetime.now()
-
-        if phase.upper() == "OFFICIAL":
-            if now <= event["official_close_at"]:
-                raise HTTPException(
-                    status_code=400, 
-                    detail="Hold up! Masa pendaftaran Official belum ditutup. Gacha tidak bisa dieksekusi."
-                )
-                
-        elif phase.upper() == "GENERAL":
-            if not event["general_close_at"]:
-                raise HTTPException(status_code=400, detail="Jadwal General belum diatur di database.")
-                
-            if now <= event["general_close_at"]:
-                raise HTTPException(
-                    status_code=400, 
-                    detail="Hold up! Masa pendaftaran General belum ditutup. Gacha tidak bisa dieksekusi."
-                )
-        else:
-            raise HTTPException(status_code=400, detail="Fase tidak valid. Pilih OFFICIAL atau GENERAL.")
-
-        # ================================================================
-        # CHECKPOINT BERHASIL
-        # Di bawah baris ini, Reyhan akan mengambil alih untuk menarik data 
-        # partisipan berstatus 'PENDING' dan menjalankan komputasi roulette
-        # ================================================================
-
-        # [Logika Roulette Reyhan akan ada di sini nantinya...]
-        # Asumsikan Reyhan sudah mendapatkan daftar ID yang kalah: losers_list = [(id1,), (id2,), (id3,)]
-        
-        # --- JOBDESK DAY 6 PIRAMIDIANA: UPDATE LOSS COUNT ---
-        # if losers_list: 
-        #     query_update_loss = "UPDATE users SET loss_count = loss_count + 1 WHERE id_user = %s"
-        #     cursor.executemany(query_update_loss, losers_list)
-        # conn.commit()
-        # ----------------------------------------------------
-
-        return {
-            "status": "success", 
-            "message": f"Validasi waktu lolos. Algoritma gacha untuk fase {phase.upper()} siap dieksekusi."
-        }
-
-    except HTTPException as he:
-        raise he
-    except pymysql.err.Error as e:
-        raise HTTPException(status_code=500, detail=f"Database execution error: {str(e)}")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
     finally:
         cursor.close()
 
