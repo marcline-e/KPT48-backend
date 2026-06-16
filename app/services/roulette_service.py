@@ -16,7 +16,13 @@ def execute_roulette_service(event_id):
     if not event:
         raise Exception("Event tidak ditemukan")
 
+    if event["status"] != "OPEN":
+        raise Exception("Event belum dibuka")
+
     participants = get_pending_registrants(event_id)
+
+    if not participants:
+        raise Exception("Tidak ada peserta pending")
 
     result = execute_roulette(
         participants=participants,

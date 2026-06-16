@@ -22,10 +22,10 @@ def get_event_by_id(event_id):
                 return None
 
             return {
-                "event_id": result["id_event"],
-                "quota": result["total_quota"],
-                "phase": result["status"]
-            }
+            "event_id": result["id_event"],
+            "quota": result["total_quota"],
+            "status": result["status"]
+        }
 
     finally:
         conn.close()
@@ -50,6 +50,7 @@ def get_pending_registrants(event_id):
                 WHERE
                     tr.id_event = %s
                     AND tr.status = 'PENDING'
+                    AND tr.phase = 'OFFICIAL'
             """
 
             cursor.execute(query, (event_id,))
