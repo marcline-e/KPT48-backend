@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 import pymysql
 
 from app.database.mysql import get_db
-from app.schemas.event_schema import EventCreate, EventUpdate
+from app.schemas.event_schema import EventCreate, EventUpdate, EventStatusUpdate
 from app.routes.auth_routes import get_current_user
 
 router = APIRouter(
@@ -81,6 +81,53 @@ def create_event(
     return {
         "message": "Event berhasil dibuat oleh admin",
         "id_event": new_event_id
+    }
+
+@router.patch("/{event_id}/status")
+def toggle_event_status(
+    event_id: int,
+    status_data: EventStatusUpdate,
+    conn: pymysql.connections.Connection = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    # 1. Validasi Admin
+    if current_user["role"] != "ADMIN":
+        raise HTTPException(status_code=403, detail="Akses ditolak! Fitur ini khusus Admin.")
+
+    # 2. Validasi input status yang diperbolehkan (Sanitization)
+    valid_statuses = ["DRAFT", "OPEN", "CLOSED"]
+    new_status = status_data.status.upper()
+    
+    if new_status not in valid_statuses:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"Status '{new_status}' tidak valid. Gunakan DRAFT, OPEN, atau CLOSED."
+        )
+
+    cursor = conn.cursor()
+    
+    try:
+        # 3. Cek eksistensi event
+        cursor.execute("SELECT id_event, set_list FROM events WHERE id_event = %s", (event_id,))
+        event = cursor.fetchone()
+        
+        if not event:
+            raise HTTPException(status_code=404, detail="Event tidak ditemukan.")
+
+        # 4. Eksekusi perubahan status
+        update_query = "UPDATE events SET status = %s WHERE id_event = %s"
+        cursor.execute(update_query, (new_status, event_id))
+        conn.commit()
+        
+    except pymysql.err.Error as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+    finally:
+        cursor.close()
+
+    return {
+        "status": "success", 
+        "message": f"Status untuk event '{event[1]}' berhasil diubah menjadi {new_status}!"
     }
 
 @router.put("/{event_id}/update")
