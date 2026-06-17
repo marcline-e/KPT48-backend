@@ -5,7 +5,6 @@ from app.database.mysql import get_db
 from app.routes.auth_routes import get_current_user
 
 router = APIRouter(
-    prefix="/roulette",
     tags=["Roulette"]
 )
 

@@ -7,9 +7,9 @@ from app.schemas.ticket_schema import TicketRegisterSchema
 from app.database.mysql import get_db
 from app.routes.auth_routes import get_current_user
 
-router = APIRouter(prefix="/ticket", tags=["Ticket"])
+router = APIRouter(tags=["Ticket"])
 
-@router.post("/", status_code=status.HTTP_201_CREATED)
+@router.post("/tickets", status_code=status.HTTP_201_CREATED)
 def register_ticket(
     req: TicketRegisterSchema,
     conn: pymysql.connections.Connection = Depends(get_db),

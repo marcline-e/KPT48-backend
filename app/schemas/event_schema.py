@@ -13,3 +13,13 @@ class EventCreate(BaseModel):
 
     general_open_at: datetime
     general_close_at: datetime
+
+class EventUpdate(BaseModel):
+    set_list: str
+    event_date: datetime
+    total_quota: int
+    ticket_price: int
+    official_open_at: datetime
+    official_close_at: datetime
+    general_open_at: datetime
+    general_close_at: datetime
