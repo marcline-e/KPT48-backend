@@ -21,3 +21,10 @@ class UpgradeMembership(BaseModel):
     username: str
     full_name: str
     role: str
+
+class UserUpdate(BaseModel):
+    email: str
+    username: str
+    full_name: str
+    nik: str
+    password: str #boleh sandi baru atau lama

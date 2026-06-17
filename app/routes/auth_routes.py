@@ -4,7 +4,7 @@ from pydantic import BaseModel
 import pymysql
 
 from app.database.mysql import get_db 
-from app.schemas.user_schema import UserCreate, UserResponse, UpgradeMembership
+from app.schemas.user_schema import UserCreate, UserResponse, UpgradeMembership, UserUpdate
 from app.core.security import (
     get_password_hash, 
     verify_password, 
@@ -187,3 +187,59 @@ def get_my_profile(current_user=Depends(get_current_user)):
         "full_name": current_user["full_name"],
         "role": current_user["role"]
     }
+
+@router.put("/me/update")
+def update_my_profile(
+    user_data: UserUpdate,
+    conn: pymysql.connections.Connection = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    id_user = current_user["id_user"]
+    cursor = conn.cursor()
+    
+    # Hash password yang baru/lama yang dikirim dari Frontend
+    hashed_pwd = get_password_hash(user_data.password)
+    
+    update_query = """
+        UPDATE users 
+        SET email = %s, username = %s, full_name = %s, nik = %s, password_hash = %s
+        WHERE id_user = %s
+    """
+    
+    try:
+        cursor.execute(update_query, (
+            user_data.email, user_data.username, user_data.full_name, 
+            user_data.nik, hashed_pwd, id_user
+        ))
+        conn.commit()
+    except pymysql.err.IntegrityError:
+        # Menangkap error jika user memasukkan email/NIK yang sudah dipakai orang lain
+        conn.rollback()
+        raise HTTPException(status_code=400, detail="Email atau NIK sudah digunakan oleh akun lain!")
+    except pymysql.err.Error as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+    finally:
+        cursor.close()
+
+    return {"message": "Profil berhasil diperbarui! Silakan login ulang jika email/password diganti."}
+
+@router.delete("/me/delete")
+def delete_my_account(
+    conn: pymysql.connections.Connection = Depends(get_db),
+    current_user: dict = Depends(get_current_user)
+):
+    id_user = current_user["id_user"]
+    cursor = conn.cursor()
+    
+    try:
+        # Hapus akun secara permanen
+        cursor.execute("DELETE FROM users WHERE id_user = %s", (id_user,))
+        conn.commit()
+    except pymysql.err.Error as e:
+        conn.rollback()
+        raise HTTPException(status_code=500, detail=f"Gagal menghapus akun: {str(e)}")
+    finally:
+        cursor.close()
+
+    return {"message": "Akun Anda telah berhasil dihapus secara permanen. Sayonara!"}
