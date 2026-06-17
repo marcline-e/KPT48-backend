@@ -25,6 +25,12 @@ def register_ticket(
             detail="Admin tidak memiliki akses untuk membeli tiket."
         )
 
+    if event["status"] != "OPEN":
+            raise HTTPException(
+                status_code=400, 
+                detail="Pendaftaran tiket untuk event ini sedang ditutup atau belum dibuka."
+            )
+            
     try:
         conn.begin()
 

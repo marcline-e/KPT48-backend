@@ -23,3 +23,6 @@ class EventUpdate(BaseModel):
     official_close_at: datetime
     general_open_at: datetime
     general_close_at: datetime
+
+class EventStatusUpdate(BaseModel):
+    status: str
