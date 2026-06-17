@@ -177,21 +177,3 @@ def execute_roulette(participants, total_quota, id_event):
         "loser_ids": loser_user_ids,
         "loser_ticket_ids": loser_ticket_ids
     }
-
-
-# ======================================
-# TEST
-# ======================================
-
-if __name__ == "__main__":
-
-    result = execute_roulette(
-        participants=participants,
-        total_quota=TOTAL_QUOTA,
-        id_event=1
-    )
-
-    print("\n=== ROULETTE RESULT ===")
-
-    for key, value in result.items():
-        print(f"{key}: {value}")
