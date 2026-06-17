@@ -10,6 +10,8 @@ def get_event_by_id(event_id):
                 SELECT
                     id_event,
                     total_quota,
+                    official_close_at,
+                    general_close_at,
                     status
                 FROM events
                 WHERE id_event = %s
@@ -24,6 +26,8 @@ def get_event_by_id(event_id):
             return {
             "event_id": result["id_event"],
             "quota": result["total_quota"],
+            "official_close_at": result["official_close_at"],
+            "general_close_at": result["general_close_at"],
             "status": result["status"]
         }
 
@@ -31,7 +35,7 @@ def get_event_by_id(event_id):
         conn.close()
 
 
-def get_pending_registrants(event_id):
+def get_pending_registrants(event_id, phase):
     conn = get_db_connection()
 
     try:
@@ -50,7 +54,7 @@ def get_pending_registrants(event_id):
                 WHERE
                     tr.id_event = %s
                     AND tr.status = 'PENDING'
-                    AND tr.phase = 'OFFICIAL'
+                    AND tr.phase = %s
             """
 
             cursor.execute(query, (event_id,))
