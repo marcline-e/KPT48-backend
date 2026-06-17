@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from app.repositories.roulette_repository import (
     get_event_by_id,
     get_pending_registrants,
@@ -14,7 +16,8 @@ from app.services.roulette_algorithm import execute_roulette
 from app.database.roulette_log_schema import create_roulette_log
 
 
-def execute_roulette_service(event_id):
+
+def execute_roulette_service(event_id, phase):
 
     event = get_event_by_id(event_id)
 

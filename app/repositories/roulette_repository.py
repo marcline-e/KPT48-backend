@@ -57,7 +57,7 @@ def get_pending_registrants(event_id, phase):
                     AND tr.phase = %s
             """
 
-            cursor.execute(query, (event_id,))
+            cursor.execute(query, (event_id, phase))
             results = cursor.fetchall()
 
             return [
