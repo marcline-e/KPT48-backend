@@ -127,7 +127,7 @@ def toggle_event_status(
 
     return {
         "status": "success", 
-        "message": f"Status untuk event '{event[1]}' berhasil diubah menjadi {new_status}!"
+        "message": f"Status untuk event '{event['set_list']}' berhasil diubah menjadi {new_status}!"
     }
 
 @router.put("/{event_id}/update")

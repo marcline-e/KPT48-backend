@@ -44,7 +44,7 @@ INSERT INTO point_balances (id_user, balance) VALUES
 ((SELECT id_user FROM users WHERE email = 'wonwoo@svt.com'), 450);
 
 INSERT INTO events (set_list, event_date, total_quota, ticket_price, official_open_at, official_close_at, general_open_at, general_close_at, status) VALUES
-('Pajama Drive', '2026-08-15 19:00:00', 200, 100, '2026-08-10 10:00:00', '2026-08-11 23:59:00', '2026-08-12 10:00:00', '2026-08-13 23:59:00', 'DRAFT'),
+('Pajama Drive', '2026-02-15 19:00:00', 200, 100, '2026-02-26 10:00:00', '2026-06-17 23:59:00', '2026-08-12 10:00:00', '2026-08-13 23:59:00', 'DRAFT'),
 ('Aturan Anti Cinta', '2026-08-20 19:00:00', 250, 150, '2026-08-15 10:00:00', '2026-08-16 23:59:00', '2026-08-17 10:00:00', '2026-08-18 23:59:00', 'DRAFT'),
 ('Tunas di Balik Seragam', '2026-08-25 19:00:00', 150, 120, '2026-08-20 10:00:00', '2026-08-21 23:59:00', '2026-08-22 10:00:00', '2026-08-23 23:59:00', 'DRAFT'),
 ('Cara Meminum Ramune', '2026-09-01 19:00:00', 300, 200, '2026-08-25 10:00:00', '2026-08-26 23:59:00', '2026-08-27 10:00:00', '2026-08-28 23:59:00', 'DRAFT'),
@@ -82,18 +82,3 @@ VALUES
 (19, 1, 'OFFICIAL', 'PENDING', 100),
 (20, 1, 'OFFICIAL', 'PENDING', 100),
 (21, 1, 'OFFICIAL', 'PENDING', 100);
-
-INSERT INTO ticket_registrations
-(
-    id_user,
-    id_event,
-    phase,
-    status,
-    point_spent
-)
-VALUES
-(12, 1, 'OFFICIAL', 'PENDING', 100),
-(13, 1, 'OFFICIAL', 'PENDING', 100),
-(14, 1, 'OFFICIAL', 'PENDING', 100),
-(15, 1, 'OFFICIAL', 'PENDING', 100);
-
