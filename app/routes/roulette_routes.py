@@ -30,7 +30,7 @@ def trigger_roulette(
         )    
 
     try:
-        result = execute_roulette_service(id_event)
+        result = execute_roulette_service(id_event, phase)
 
         return {
             "success": True,
