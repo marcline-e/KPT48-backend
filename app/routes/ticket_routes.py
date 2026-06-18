@@ -16,7 +16,6 @@ def register_ticket(
     current_user: dict = Depends(get_current_user) 
 ):
     id_user = current_user["id_user"]
-    phase = current_user["role"]
     cursor = conn.cursor()
 
     if current_user["role"] == "ADMIN":
@@ -24,24 +23,39 @@ def register_ticket(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin tidak memiliki akses untuk membeli tiket."
         )
-
-    if event["status"] != "OPEN":
-            raise HTTPException(
-                status_code=400, 
-                detail="Pendaftaran tiket untuk event ini sedang ditutup atau belum dibuka."
-            )
             
     try:
         conn.begin()
 
+        # 1. Penarikan data acara harus dilakukan sebelum memvalidasi status
         cursor.execute("SELECT * FROM events WHERE id_event = %s FOR UPDATE", (req.id_event,))
         event = cursor.fetchone()
 
         if not event:
-            raise HTTPException(status_code=404, detail="Event tidak ditemukan.")
+            raise HTTPException(status_code=404, detail="Acara tidak ditemukan.")
+
+        # 2. Validasi status acara dilakukan setelah data berhasil ditarik
+        if event["status"] != "OPEN":
+            raise HTTPException(
+                status_code=400, 
+                detail="Pendaftaran tiket untuk acara ini sedang ditutup atau belum dibuka."
+            )
+
+        # 3. Penambahan kueri untuk memastikan satu tiket per pengguna
+        cursor.execute("""
+            SELECT id_ticket_registration 
+            FROM ticket_registrations 
+            WHERE id_user = %s AND id_event = %s
+        """, (id_user, req.id_event))
+        existing_ticket = cursor.fetchone()
+
+        if existing_ticket:
+            raise HTTPException(
+                status_code=400,
+                detail="Anda sudah terdaftar pada acara ini. Setiap akun hanya diperbolehkan membeli satu tiket."
+            )
 
         current_ticket_price = event["ticket_price"]
-
         now = datetime.now()
         user_role = current_user["role"].upper()
         phase_terpilih = None
@@ -66,7 +80,7 @@ def register_ticket(
                     detail="Fase pendaftaran General Member belum dibuka atau sudah ditutup."
                 )
         else:
-            raise HTTPException(status_code=403, detail="Role tidak dikenali.")
+            raise HTTPException(status_code=403, detail="Peran pengguna tidak dikenali.")
 
         cursor.execute("SELECT balance FROM point_balances WHERE id_user = %s FOR UPDATE", (id_user,))
         point_balance = cursor.fetchone()
@@ -100,7 +114,7 @@ def register_ticket(
 
         return {
             "status": "success",
-            "message": f"Berhasil mendaftar tiket. Poin terpotong: {current_ticket_price}",
+            "message": f"Pendaftaran tiket berhasil dilakukan. Poin yang terpotong: {current_ticket_price}",
             "ticket_id": ticket_id
         }
 
@@ -110,11 +124,11 @@ def register_ticket(
         
     except pymysql.err.Error as e:
         conn.rollback()
-        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Galat pada basis data: {str(e)}")
         
     except Exception as e:
         conn.rollback()
-        raise HTTPException(status_code=500, detail=f"Transaksi gagal: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Transaksi mengalami kegagalan: {str(e)}")
         
     finally:
         cursor.close()
