@@ -5,10 +5,10 @@
 
 | NRP | Nama | Peran |
 |-----|------|-------|
-| 5027251017 | Viko Rizky | Data Architect & Infrastructure |
-| 5027251031 | Piramidiana | Auth & Account Manager |
-| 5027251044 | Arrumanta | Core Transaction Engineer |
-| 5027251080 | Reyhan Adi | Algorithm & Logic Master |
+| 5027251017 | Viko Rizky Fauzan | Data Architect & Infrastructure |
+| 5027251031 | Dian Piramidiana Rachmatika | Auth & Account Manager |
+| 5027251044 | Arrumanta Ekna Luhkinasih | Core Transaction Engineer |
+| 5027251080 | Reyhan Adi Satrio | Algorithm & Logic Master |
 
 ---
 
