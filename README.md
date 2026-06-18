@@ -1,4 +1,4 @@
-# 🎭 KPT48 Theater Ticketing System
+# KPT48 Theater Ticketing System
 
 > **Final Project — Sistem Basis Data 2026**
 > Kelompok 4 | Teknik Informatika ITS
@@ -61,7 +61,7 @@ Berdasarkan proses ticketing KPT48 Theater, terdapat beberapa permasalahan utama
 
 ### 2.1 Fitur Utama
 
-#### 👤 Manajemen Akun
+#### Manajemen Akun
 | Fitur | Deskripsi |
 |-------|-----------|
 | Register & Login | Pembuatan akun dengan hashing password (bcrypt) dan autentikasi JWT |
@@ -69,14 +69,14 @@ Berdasarkan proses ticketing KPT48 Theater, terdapat beberapa permasalahan utama
 | Upgrade Membership | General Member dapat upgrade ke Official dengan memotong 200 poin |
 | Update & Delete Profil | Pengguna dapat memperbarui atau menghapus akunnya sendiri |
 
-#### 🎪 Manajemen Event (Khusus Admin)
+#### Manajemen Event (Khusus Admin)
 | Fitur | Deskripsi |
 |-------|-----------|
 | CRUD Event | Membuat, mengubah, menghapus event pertunjukan |
 | Toggle Status | Mengubah status event: `DRAFT → OPEN → CLOSED` |
 | Pengaturan Fase | Set jadwal buka/tutup untuk fase Official dan General secara independen |
 
-#### 🎫 Sistem Ticketing
+#### Sistem Ticketing
 | Fitur | Deskripsi |
 |-------|-----------|
 | Fase Official | Hanya Official Member yang bisa mendaftar pada rentang waktu official |
@@ -84,7 +84,7 @@ Berdasarkan proses ticketing KPT48 Theater, terdapat beberapa permasalahan utama
 | Transaksi ACID | Pendaftaran tiket dilindungi dengan database transaction + row-level locking (`FOR UPDATE`) |
 | Cek Status Tiket | Pengguna dapat melihat seluruh riwayat registrasi tiket miliknya |
 
-#### 💰 Sistem Poin
+#### Sistem Poin
 | Fitur | Deskripsi |
 |-------|-----------|
 | Top-Up Poin | Pengguna dapat mengisi saldo poin kapan saja |
@@ -419,7 +419,7 @@ KPT48-backend/
 
 ### 5.3 API Endpoint
 
-#### 🔐 Authentication (`/`)
+#### Authentication (`/`)
 | Method | Endpoint | Role | Deskripsi |
 |--------|----------|------|-----------|
 | `POST` | `/register` | Public | Daftar akun baru (role: GENERAL) |
@@ -429,7 +429,7 @@ KPT48-backend/
 | `PUT` | `/me/update` | All | Perbarui data profil |
 | `DELETE` | `/me/delete` | All | Hapus akun secara permanen |
 
-#### 🎪 Event Management (`/event`)
+#### Event Management (`/event`)
 | Method | Endpoint | Role | Deskripsi |
 |--------|----------|------|-----------|
 | `POST` | `/event` | ADMIN | Buat event baru |
@@ -437,14 +437,14 @@ KPT48-backend/
 | `PATCH` | `/{event_id}/status` | ADMIN | Ubah status event (DRAFT/OPEN/CLOSED) |
 | `DELETE` | `/{event_id}/delete` | ADMIN | Hapus event |
 
-#### 🎫 Ticketing (`/tickets`)
+#### Ticketing (`/tickets`)
 | Method | Endpoint | Role | Deskripsi |
 |--------|----------|------|-----------|
 | `POST` | `/tickets` | OFFICIAL/GENERAL | Daftar tiket (otomatis deteksi fase) |
 | `GET` | `/status` | All | Lihat semua tiket milik sendiri |
 | `POST` | `/{id_event}/refund` | ADMIN | Proses refund massal peserta LOSE |
 
-#### 💰 Transaksi Poin (`/`)
+#### Transaksi Poin (`/`)
 | Method | Endpoint | Role | Deskripsi |
 |--------|----------|------|-----------|
 | `POST` | `/topup` | All | Isi saldo poin |
